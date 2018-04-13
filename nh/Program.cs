@@ -1,4 +1,6 @@
-﻿using NHibernate.Cfg;
+﻿using FluentNHibernate.Cfg;
+using FluentNHibernate.Cfg.Db;
+using NHibernate.Cfg;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,10 +11,12 @@ namespace nh
     {
         static async Task Main(string[] args)
         {
-            var configuration = new Configuration();
-            configuration.Configure();
-            var SessionFactory = configuration.BuildSessionFactory();
-            var session = SessionFactory.OpenSession();
+            var sessionFactory = Fluently
+                .Configure()
+                .Database(MsSqlConfiguration.MsSql2012.ConnectionString(@"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=NHTeste;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=True;ApplicationIntent=ReadWrite;MultiSubnetFailover=False"))
+                .Mappings(m => m.FluentMappings.AddFromAssemblyOf<Program>())
+                .BuildSessionFactory();
+            var session = sessionFactory.OpenSession();
 
             Console.Write("Digite o nome da Cidade =");
             var name = Console.ReadLine();
@@ -21,7 +25,7 @@ namespace nh
             var population = Console.ReadLine();
 
 
-            var city = new City { Name = name, Population = Convert.ToInt16(population) };
+            var city = new City { Name = name, Population = Convert.ToInt32(population) };
             await session.SaveOrUpdateAsync(city);
             await session.FlushAsync();
 
